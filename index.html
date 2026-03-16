@@ -10,7 +10,6 @@
       margin: 0;
       height: 100%;
       background: #111;
-      color: white;
       font-family: system-ui, sans-serif;
     }
     #viewer {
@@ -39,36 +38,21 @@
   <script>
     const status = document.getElementById("status");
 
-    try {
-      const bookUrl = "https://joshadamsrn.github.io/Wizardsbane/wizards-bane.epub";
-      const book = ePub(bookUrl);
+    const book = ePub("https://joshadamsrn.github.io/Wizardsbane/wizards-bane.epub");
+    const rendition = book.renderTo("viewer", {
+      width: "100%",
+      height: "100%"
+    });
 
-      const rendition = book.renderTo("viewer", {
-        width: "100%",
-        height: "100%",
-        flow: "paginated"
-      });
-
-      rendition.display();
-
-      book.ready.then(() => {
-        status.textContent = "Book loaded";
-        setTimeout(() => status.style.display = "none", 1500);
-      }).catch(err => {
-        status.textContent = "Book failed to load: " + err;
-        console.error(err);
-      });
-
-      book.loaded.navigation.then(() => {
-        console.log("Navigation loaded");
-      }).catch(err => {
-        console.error("Navigation error:", err);
-      });
-
-    } catch (err) {
-      status.textContent = "Reader error: " + err;
+    rendition.display().then(() => {
+      status.textContent = "Book loaded";
+      setTimeout(() => {
+        status.style.display = "none";
+      }, 1000);
+    }).catch((err) => {
+      status.textContent = "Failed to load book";
       console.error(err);
-    }
+    });
   </script>
 </body>
 </html>
