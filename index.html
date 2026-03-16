@@ -2,28 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>Wizard's Bane</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
 
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #111;
-      font-family: system-ui, sans-serif;
-      overflow: hidden;
+    :root {
+      --bg: #f5f1e8;
+      --fg: #1f1f1f;
+      --panel: rgba(30, 30, 30, 0.94);
+      --panelText: #ffffff;
+      --button: #3a3a3a;
+      --buttonText: #ffffff;
+      --viewerBg: #ffffff;
+      --accent: #b38b59;
     }
 
-    #viewer {
-      position: absolute;
-      top: 56px;
-      bottom: 56px;
-      left: 0;
-      right: 0;
-      background: white;
+    body.dark {
+      --bg: #111111;
+      --fg: #e8e8e8;
+      --panel: rgba(10, 10, 10, 0.96);
+      --panelText: #f3f3f3;
+      --button: #262626;
+      --buttonText: #f3f3f3;
+      --viewerBg: #1a1a1a;
+      --accent: #d1a86d;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Georgia, serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     #topbar, #bottombar {
@@ -31,110 +48,230 @@
       left: 0;
       right: 0;
       z-index: 9999;
-      background: rgba(20,20,20,.95);
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px;
+      background: var(--panel);
+      color: var(--panelText);
       box-sizing: border-box;
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
     #topbar {
       top: 0;
-      height: 56px;
+      min-height: 58px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     #bottombar {
       bottom: 0;
-      height: 56px;
+      min-height: 58px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
       justify-content: space-between;
+      gap: 8px;
     }
 
-    .btn {
-      background: #2c2c2c;
-      color: white;
+    .hidden-ui #topbar {
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hidden-ui #bottombar {
+      transform: translateY(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #viewer {
+      position: fixed;
+      top: 58px;
+      bottom: 58px;
+      left: 0;
+      right: 0;
+      background: var(--viewerBg);
+      overflow: hidden;
+    }
+
+    .hidden-ui #viewer {
+      top: 0;
+      bottom: 0;
+    }
+
+    .btn, select {
+      background: var(--button);
+      color: var(--buttonText);
       border: none;
-      border-radius: 8px;
-      padding: 8px 12px;
+      border-radius: 10px;
+      padding: 9px 12px;
       font-size: 14px;
+      line-height: 1;
+      min-height: 38px;
     }
 
-    .btn:active {
-      opacity: 0.8;
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      max-width: 42vw;
     }
 
     #title {
-      font-weight: 600;
+      flex: 1;
       font-size: 15px;
-      white-space: nowrap;
+      font-weight: 600;
       overflow: hidden;
       text-overflow: ellipsis;
-      flex: 1;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    #progress {
+      min-width: 80px;
+      text-align: right;
+      font-size: 13px;
+      opacity: 0.95;
     }
 
     #status {
       position: fixed;
-      top: 66px;
+      top: 70px;
       left: 10px;
       right: 10px;
       z-index: 10000;
-      background: rgba(0,0,0,.8);
+      background: rgba(0,0,0,.85);
       color: white;
       padding: 10px 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 14px;
     }
 
-    #tap-left, #tap-right {
-      position: absolute;
-      top: 56px;
-      bottom: 56px;
-      width: 25%;
+    .hidden-ui #status {
+      top: 10px;
+    }
+
+    #tap-left, #tap-center, #tap-right {
+      position: fixed;
+      top: 58px;
+      bottom: 58px;
       z-index: 5000;
     }
 
-    #tap-left { left: 0; }
-    #tap-right { right: 0; }
+    .hidden-ui #tap-left,
+    .hidden-ui #tap-center,
+    .hidden-ui #tap-right {
+      top: 0;
+      bottom: 0;
+    }
 
-    #progress {
-      font-size: 13px;
-      opacity: 0.9;
-      min-width: 90px;
-      text-align: right;
+    #tap-left {
+      left: 0;
+      width: 28%;
+    }
+
+    #tap-center {
+      left: 28%;
+      width: 44%;
+    }
+
+    #tap-right {
+      right: 0;
+      width: 28%;
+    }
+
+    #chapterSelect {
+      flex: 0 1 auto;
     }
   </style>
 </head>
-<body>
+<body class="hidden-ui">
   <div id="topbar">
     <button class="btn" id="prevBtn">◀</button>
+    <select id="chapterSelect">
+      <option>Chapters</option>
+    </select>
     <div id="title">Wizard's Bane</div>
-    <button class="btn" id="bookmarkBtn">Bookmark</button>
-    <button class="btn" id="goBookmarkBtn">Go to Mark</button>
+    <button class="btn" id="bookmarkBtn">Mark</button>
+    <button class="btn" id="goBookmarkBtn">Go</button>
   </div>
 
   <div id="status">Loading book…</div>
   <div id="viewer"></div>
+
   <div id="tap-left"></div>
+  <div id="tap-center"></div>
   <div id="tap-right"></div>
 
   <div id="bottombar">
-    <button class="btn" id="saveBtn">Save Spot</button>
-    <button class="btn" id="resumeBtn">Resume</button>
+    <button class="btn" id="fontDownBtn">A-</button>
+    <button class="btn" id="fontUpBtn">A+</button>
+    <button class="btn" id="themeBtn">Dark</button>
     <div id="progress">0%</div>
     <button class="btn" id="nextBtn">▶</button>
   </div>
 
   <script>
-    const status = document.getElementById("status");
-    const progressEl = document.getElementById("progress");
-
     const STORAGE_KEY = "wizards-bane-last-location";
     const BOOKMARK_KEY = "wizards-bane-bookmark";
+    const FONT_KEY = "wizards-bane-font-size";
+    const THEME_KEY = "wizards-bane-theme";
+
+    const status = document.getElementById("status");
+    const progressEl = document.getElementById("progress");
+    const chapterSelect = document.getElementById("chapterSelect");
+    const body = document.body;
+    const titleEl = document.getElementById("title");
 
     let book;
     let rendition;
+    let toc = [];
+    let currentFont = parseInt(localStorage.getItem(FONT_KEY) || "100", 10);
+    let currentTheme = localStorage.getItem(THEME_KEY) || "light";
     let locationsReady = false;
+    let touchStartX = null;
+
+    if (currentTheme === "dark") {
+      body.classList.add("dark");
+      document.getElementById("themeBtn").textContent = "Light";
+    }
+
+    function showStatus(message, persist = false) {
+      status.textContent = message;
+      status.style.display = "block";
+      if (!persist) {
+        setTimeout(() => {
+          status.style.display = "none";
+        }, 1400);
+      }
+    }
+
+    function applyThemeToRendition() {
+      if (!rendition) return;
+
+      rendition.themes.default({
+        "body": {
+          "background": currentTheme === "dark" ? "#1a1a1a" : "#ffffff",
+          "color": currentTheme === "dark" ? "#e8e8e8" : "#1f1f1f",
+          "line-height": "1.6",
+          "font-family": "Georgia, serif",
+          "padding-left": "0",
+          "padding-right": "0"
+        },
+        "p, div, span": {
+          "color": currentTheme === "dark" ? "#e8e8e8" : "#1f1f1f"
+        },
+        "a": {
+          "color": currentTheme === "dark" ? "#d1a86d" : "#8b5a2b"
+        }
+      });
+
+      rendition.themes.fontSize(currentFont + "%");
+    }
+
+    function toggleUI() {
+      body.classList.toggle("hidden-ui");
+    }
 
     async function loadBook() {
       try {
@@ -144,22 +281,30 @@
         }
 
         status.textContent = "Opening book…";
-
         const arrayBuffer = await response.arrayBuffer();
+
         book = ePub(arrayBuffer);
 
         rendition = book.renderTo("viewer", {
           width: "100%",
           height: "100%",
           flow: "paginated",
-          spread: "none"
+          spread: "none",
+          manager: "default"
         });
+
+        applyThemeToRendition();
 
         const savedLocation = localStorage.getItem(STORAGE_KEY);
         await rendition.display(savedLocation || undefined);
 
         await book.ready;
-        await book.locations.generate(1000);
+
+        const navigation = await book.loaded.navigation;
+        toc = navigation.toc || [];
+        buildTOC(toc);
+
+        await book.locations.generate(1200);
         locationsReady = true;
 
         rendition.on("relocated", (location) => {
@@ -170,12 +315,16 @@
             const percent = book.locations.percentageFromCfi(cfi);
             progressEl.textContent = Math.round(percent * 100) + "%";
           }
+
+          updateChapterSelect(location.start.href);
         });
+
+        titleEl.textContent = book.package?.metadata?.title || "Wizard's Bane";
 
         status.textContent = "Book loaded";
         setTimeout(() => {
           status.style.display = "none";
-        }, 1200);
+        }, 1000);
 
       } catch (err) {
         console.error(err);
@@ -183,12 +332,78 @@
       }
     }
 
-    function showStatus(message) {
-      status.textContent = message;
-      status.style.display = "block";
-      setTimeout(() => {
-        status.style.display = "none";
-      }, 1200);
+    function buildTOC(items, level = 0, prefix = "") {
+      if (level === 0) {
+        chapterSelect.innerHTML = '<option value="">Chapters</option>';
+      }
+
+      items.forEach((item, index) => {
+        const option = document.createElement("option");
+        option.value = item.href;
+        option.textContent = `${"— ".repeat(level)}${item.label}`;
+        chapterSelect.appendChild(option);
+
+        if (item.subitems && item.subitems.length) {
+          buildTOC(item.subitems, level + 1);
+        }
+      });
+    }
+
+    function updateChapterSelect(currentHref) {
+      if (!currentHref) return;
+      const cleanCurrent = currentHref.split("#")[0];
+
+      for (const option of chapterSelect.options) {
+        if (option.value && option.value.split("#")[0] === cleanCurrent) {
+          chapterSelect.value = option.value;
+          return;
+        }
+      }
+    }
+
+    async function goToBookmark() {
+      const bookmark = localStorage.getItem(BOOKMARK_KEY);
+      if (!bookmark || !rendition) {
+        showStatus("No bookmark saved");
+        return;
+      }
+      await rendition.display(bookmark);
+      showStatus("Opened bookmark");
+    }
+
+    function saveBookmark() {
+      const current = localStorage.getItem(STORAGE_KEY);
+      if (!current) {
+        showStatus("No location to bookmark");
+        return;
+      }
+      localStorage.setItem(BOOKMARK_KEY, current);
+      showStatus("Bookmark saved");
+    }
+
+    function changeFont(delta) {
+      currentFont = Math.min(150, Math.max(80, currentFont + delta));
+      localStorage.setItem(FONT_KEY, String(currentFont));
+      if (rendition) {
+        rendition.themes.fontSize(currentFont + "%");
+      }
+      showStatus("Font size: " + currentFont + "%");
+    }
+
+    function toggleTheme() {
+      currentTheme = currentTheme === "dark" ? "light" : "dark";
+      localStorage.setItem(THEME_KEY, currentTheme);
+
+      if (currentTheme === "dark") {
+        body.classList.add("dark");
+        document.getElementById("themeBtn").textContent = "Light";
+      } else {
+        body.classList.remove("dark");
+        document.getElementById("themeBtn").textContent = "Dark";
+      }
+
+      applyThemeToRendition();
+      showStatus(currentTheme === "dark" ? "Dark mode" : "Light mode");
     }
 
     document.getElementById("nextBtn").addEventListener("click", () => {
@@ -199,6 +414,18 @@
       if (rendition) rendition.prev();
     });
 
+    document.getElementById("bookmarkBtn").addEventListener("click", saveBookmark);
+    document.getElementById("goBookmarkBtn").addEventListener("click", goToBookmark);
+    document.getElementById("fontUpBtn").addEventListener("click", () => changeFont(10));
+    document.getElementById("fontDownBtn").addEventListener("click", () => changeFont(-10));
+    document.getElementById("themeBtn").addEventListener("click", toggleTheme);
+
+    chapterSelect.addEventListener("change", async (e) => {
+      if (!rendition || !e.target.value) return;
+      await rendition.display(e.target.value);
+      showStatus("Jumped to chapter");
+    });
+
     document.getElementById("tap-right").addEventListener("click", () => {
       if (rendition) rendition.next();
     });
@@ -207,45 +434,34 @@
       if (rendition) rendition.prev();
     });
 
-    document.getElementById("saveBtn").addEventListener("click", () => {
-      const current = localStorage.getItem(STORAGE_KEY);
-      if (current) {
-        localStorage.setItem(STORAGE_KEY, current);
-        showStatus("Spot saved");
-      }
-    });
-
-    document.getElementById("resumeBtn").addEventListener("click", async () => {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved && rendition) {
-        await rendition.display(saved);
-        showStatus("Resumed");
-      }
-    });
-
-    document.getElementById("bookmarkBtn").addEventListener("click", () => {
-      const current = localStorage.getItem(STORAGE_KEY);
-      if (current) {
-        localStorage.setItem(BOOKMARK_KEY, current);
-        showStatus("Bookmark saved");
-      }
-    });
-
-    document.getElementById("goBookmarkBtn").addEventListener("click", async () => {
-      const bookmark = localStorage.getItem(BOOKMARK_KEY);
-      if (bookmark && rendition) {
-        await rendition.display(bookmark);
-        showStatus("Opened bookmark");
-      } else {
-        showStatus("No bookmark saved");
-      }
-    });
+    document.getElementById("tap-center").addEventListener("click", toggleUI);
 
     document.addEventListener("keydown", (e) => {
       if (!rendition) return;
       if (e.key === "ArrowRight") rendition.next();
       if (e.key === "ArrowLeft") rendition.prev();
+      if (e.key.toLowerCase() === "b") saveBookmark();
     });
+
+    document.addEventListener("touchstart", (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener("touchend", (e) => {
+      if (touchStartX === null || !rendition) return;
+      const touchEndX = e.changedTouches[0].clientX;
+      const deltaX = touchEndX - touchStartX;
+
+      if (Math.abs(deltaX) > 50) {
+        if (deltaX < 0) {
+          rendition.next();
+        } else {
+          rendition.prev();
+        }
+      }
+
+      touchStartX = null;
+    }, { passive: true });
 
     loadBook();
   </script>
