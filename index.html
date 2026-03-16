@@ -1,1 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Wizard's Bane</title>
+<script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+<style>
+body {
+  margin:0;
+  font-family: serif;
+}
+#viewer {
+  height:100vh;
+  width:100vw;
+}
+</style>
+</head>
+<body>
 
+<div id="viewer"></div>
+
+<script>
+var book = ePub("wizards-bane.epub");
+var rendition = book.renderTo("viewer", {
+  width: "100%",
+  height: "100%"
+});
+rendition.display();
+</script>
+
+</body>
+</html>
