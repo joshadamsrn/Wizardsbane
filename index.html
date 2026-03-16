@@ -1,32 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Wizard's Bane</title>
-<script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
-<style>
-body {
-  margin:0;
-  font-family: serif;
-}
-#viewer {
-  height:100vh;
-  width:100vw;
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wizard's Bane</title>
+  <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #111;
+      color: white;
+      font-family: system-ui, sans-serif;
+    }
+    #viewer {
+      height: 100vh;
+      width: 100vw;
+      background: white;
+    }
+    #status {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      z-index: 9999;
+      background: rgba(0,0,0,.8);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
+  <div id="status">Loading book…</div>
+  <div id="viewer"></div>
 
-<div id="viewer"></div>
+  <script>
+    const status = document.getElementById("status");
 
-<script>
-var book = ePub("wizards-bane.epub");
-var rendition = book.renderTo("viewer", {
-  width: "100%",
-  height: "100%"
-});
-rendition.display();
-</script>
+    try {
+      const bookUrl = "./wizards-bane.epub";
+      const book = ePub(bookUrl);
 
+      const rendition = book.renderTo("viewer", {
+        width: "100%",
+        height: "100%",
+        flow: "paginated"
+      });
+
+      rendition.display();
+
+      book.ready.then(() => {
+        status.textContent = "Book loaded";
+        setTimeout(() => status.style.display = "none", 1500);
+      }).catch(err => {
+        status.textContent = "Book failed to load: " + err;
+        console.error(err);
+      });
+
+      book.loaded.navigation.then(() => {
+        console.log("Navigation loaded");
+      }).catch(err => {
+        console.error("Navigation error:", err);
+      });
+
+    } catch (err) {
+      status.textContent = "Reader error: " + err;
+      console.error(err);
+    }
+  </script>
 </body>
 </html>
