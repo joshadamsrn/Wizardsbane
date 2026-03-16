@@ -96,8 +96,10 @@
     }
 
     .hidden-ui #viewer {
-      top: 0;
-      bottom: 0;
+      top: env(safe-area-inset-top);
+      left: 0;
+      right: 0;
+      bottom: calc(28px + env(safe-area-inset-bottom));
     }
 
     .btn, select {
@@ -256,7 +258,8 @@
           "line-height": "1.6",
           "font-family": "Georgia, serif",
           "padding-left": "0",
-          "padding-right": "0"
+          "padding-right": "0",
+          "padding-bottom": "32px"
         },
         "p, div, span": {
           "color": currentTheme === "dark" ? "#e8e8e8" : "#1f1f1f"
@@ -332,12 +335,12 @@
       }
     }
 
-    function buildTOC(items, level = 0, prefix = "") {
+    function buildTOC(items, level = 0) {
       if (level === 0) {
         chapterSelect.innerHTML = '<option value="">Chapters</option>';
       }
 
-      items.forEach((item, index) => {
+      items.forEach((item) => {
         const option = document.createElement("option");
         option.value = item.href;
         option.textContent = `${"— ".repeat(level)}${item.label}`;
