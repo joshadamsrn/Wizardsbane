@@ -4,7 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Wizard's Bane</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/epubjs/dist/epub.min.js"></script>
+
   <style>
     html, body {
       margin: 0;
@@ -12,11 +15,13 @@
       background: #111;
       font-family: system-ui, sans-serif;
     }
+
     #viewer {
       height: 100vh;
       width: 100vw;
       background: white;
     }
+
     #status {
       position: fixed;
       top: 10px;
@@ -41,6 +46,7 @@
     async function loadBook() {
       try {
         const response = await fetch("./wizards-bane.epub", { cache: "no-store" });
+
         if (!response.ok) {
           throw new Error("EPUB fetch failed: " + response.status + " " + response.statusText);
         }
@@ -61,6 +67,7 @@
         setTimeout(() => {
           status.style.display = "none";
         }, 1200);
+
       } catch (err) {
         console.error(err);
         status.textContent = "Error: " + err.message;
